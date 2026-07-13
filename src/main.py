@@ -45,23 +45,18 @@ with Image.open(
 
     print(vertices)
 
-    stl_triangles = np.zeros(((img_len - 1) * (img_bth - 1) * 2 + 2, 3), dtype=int)
-    j = 0
-    for i in range(img_len * (img_bth - 1) + 1):
-        if i % (img_len - 1) == 0 and i != 0:
-            continue
+    stl_triangles = np.zeros(((img_len - 1) * (img_bth - 1) * 2, 3), dtype=int)
+    t = 0
+    for i in range(img_len - 1):
+        for j in range(img_bth - 1):
+            top_left = i * img_bth + j
+            top_right = top_left + 1
+            bottom_left = top_left + img_bth
+            bottom_right = bottom_left + 1
 
-        stl_triangles[j][0] = i
-        stl_triangles[j][1] = i + 1
-        stl_triangles[j][2] = i + img_len
-
-        stl_triangles[j + 1][0] = i + 1
-        stl_triangles[j + 1][1] = i + img_len
-        stl_triangles[j + 1][2] = i + 1 + img_len
-        j += 2
-
-    stl_triangles[j] = [0, img_len, img_bth]
-    stl_triangles[j + 1] = [img_len, img_bth, img_len * img_bth - 1]
+            stl_triangles[t] = [top_left, top_right, bottom_left]
+            stl_triangles[t + 1] = [top_right, bottom_left, bottom_right]
+            t += 2
 
     print(stl_triangles)
 
