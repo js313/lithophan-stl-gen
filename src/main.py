@@ -16,6 +16,7 @@ with Image.open(
     inverted_image_array = np.asarray(inverted_image)
     img_len = len(inverted_image_array)
     img_bth = len(inverted_image_array[0])
+    img_pix_cnt = img_len * img_bth
 
     # Get z-axis of each pixel
     height_map_array = np.zeros((img_len, img_bth))
@@ -30,22 +31,29 @@ with Image.open(
             j += 1
         i += 1
 
-    print(height_map_array)
-
-    # Image.fromarray(height_map_array * 10).show()
-
     # Create STL file from height map array
-    vertices = np.zeros((img_len * img_bth, 3))
+    # Top
+    top_vertices = np.zeros((img_len * img_bth, 3))
     for i in range(img_len):
         for j in range(img_bth):
             idx = img_bth * i + j
-            vertices[idx][0] = i
-            vertices[idx][1] = j
-            vertices[idx][2] = height_map_array[i][j]
+            top_vertices[idx][0] = i
+            top_vertices[idx][1] = j
+            top_vertices[idx][2] = height_map_array[i][j]
 
-    print(vertices)
+    bottom_vertices = np.zeros((img_len * img_bth, 3))
+    for i in range(img_len):
+        for j in range(img_bth):
+            idx = img_bth * i + j
+            bottom_vertices[idx][0] = i
+            bottom_vertices[idx][1] = j
+            bottom_vertices[idx][2] = 0
 
-    stl_triangles = np.zeros(((img_len - 1) * (img_bth - 1) * 2, 3), dtype=int)
+    all_vertices = np.vstack((top_vertices, bottom_vertices))
+
+    print("all_vertices", all_vertices)
+
+    top_triangles = np.zeros(((img_len - 1) * (img_bth - 1) * 2, 3), dtype=int)
     t = 0
     for i in range(img_len - 1):
         for j in range(img_bth - 1):
@@ -54,15 +62,99 @@ with Image.open(
             bottom_left = top_left + img_bth
             bottom_right = bottom_left + 1
 
-            stl_triangles[t] = [top_left, top_right, bottom_left]
-            stl_triangles[t + 1] = [top_right, bottom_left, bottom_right]
+            top_triangles[t] = [top_left, top_right, bottom_left]
+            top_triangles[t + 1] = [top_right, bottom_right, bottom_left]
             t += 2
 
-    print(stl_triangles)
+    print("top_triangles", top_triangles)
 
-    final_mesh = mesh.Mesh(np.zeros(stl_triangles.shape[0], dtype=mesh.Mesh.dtype))
+    # Bottom
+    bottom_triangles = np.zeros(((img_len - 1) * (img_bth - 1) * 2, 3), dtype=int)
+    t = 0
+    for i in range(img_len - 1):
+        for j in range(img_bth - 1):
+            top_left = i * img_bth + j + img_pix_cnt
+            top_right = top_left + 1
+            bottom_left = top_left + img_bth
+            bottom_right = bottom_left + 1
 
-    final_mesh.vectors = vertices[stl_triangles]
+            # bottom_triangles[t] = [top_left, bottom_left, top_right]
+            # bottom_triangles[t + 1] = [top_right, bottom_left, bottom_right]
+            bottom_triangles[t] = [top_left, top_right, bottom_left]
+            bottom_triangles[t + 1] = [top_right, bottom_right, bottom_left]
+            t += 2
+
+    print("bottom_triangles", bottom_triangles)
+
+    # Sides
+    # Up
+    side_up_triangles = np.zeros(((img_bth - 1) * 2, 3), dtype=int)  # problematic
+    t = 0
+    for i in range(img_bth - 1):
+        top_left = i
+        top_right = i + 1
+        bottom_left = i + img_pix_cnt
+        bottom_right = bottom_left + 1
+
+        side_up_triangles[t] = [top_left, top_right, bottom_left]
+        side_up_triangles[t + 1] = [top_right, bottom_right, bottom_left]
+        t += 2
+    print("side_up_triangles", side_up_triangles)
+
+    # Bottom
+    side_bottom_triangles = np.zeros(((img_bth - 1) * 2, 3), dtype=int)
+    t = 0
+    for i in range(img_pix_cnt - img_bth, img_pix_cnt - 1):
+        top_left = i
+        top_right = i + 1
+        bottom_left = i + img_pix_cnt
+        bottom_right = bottom_left + 1
+
+        side_bottom_triangles[t] = [top_left, bottom_left, top_right]
+        side_bottom_triangles[t + 1] = [top_right, bottom_left, bottom_right]
+        t += 2
+    print("side_bottom_triangles", side_bottom_triangles)
+
+    # Left
+    side_left_triangles = np.zeros(((img_len - 1) * 2, 3), dtype=int)
+    t = 0
+    for i in range(0, img_pix_cnt - img_bth - 1, img_bth):
+        top_left = i
+        top_right = i + img_bth
+        bottom_left = i + img_pix_cnt
+        bottom_right = bottom_left + img_bth
+
+        side_left_triangles[t] = [top_left, top_right, bottom_left]
+        side_left_triangles[t + 1] = [top_right, bottom_right, bottom_left]
+        t += 2
+    print("side_left_triangles", side_left_triangles)
+
+    # Right
+    side_right_triangles = np.zeros(((img_len - 1) * 2, 3), dtype=int)  # Problematic
+    t = 0
+    for i in range(img_bth - 1, img_pix_cnt - 1, img_bth):
+        top_left = i
+        top_right = i + img_bth
+        bottom_left = i + img_pix_cnt
+        bottom_right = bottom_left + img_bth
+
+        side_right_triangles[t] = [top_left, bottom_left, top_right]
+        side_right_triangles[t + 1] = [top_right, bottom_left, bottom_right]
+        t += 2
+    print("side_right_triangles", side_right_triangles)
+
+    all_triangles = np.concatenate(
+        [
+            top_triangles,
+            bottom_triangles,
+            side_up_triangles,
+            side_bottom_triangles,
+            side_left_triangles,
+            side_right_triangles,
+        ]
+    )
+    final_mesh = mesh.Mesh(np.zeros(all_triangles.shape[0], dtype=mesh.Mesh.dtype))
+    final_mesh.vectors = all_vertices[all_triangles]
 
     # Save mesh to stl file
     final_mesh.save("output.stl")
