@@ -1,15 +1,21 @@
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ImageEnhance, ImageFilter
 import numpy as np
 from stl import mesh
 
-THICKNESS_SCALE = [0.8, 3.2]
+THICKNESS_SCALE = [0.6, 3.0]
+MAX_PRINT_SIDE = 150
+CONTRAST = 2.0
 
 # Load Image
 with Image.open(
     "/Users/jeenitsharma/Documents/Code/Personal/lithophane-stl-gen/src/test1.jpg"
 ) as original_image:
     # Convert the image to grayscale
-    gray_scale_image = original_image.convert("L")
+    enhancer = ImageEnhance.Contrast(original_image)
+    contrast_image = enhancer.enhance(CONTRAST)
+    blurred_image = contrast_image.filter(ImageFilter.GaussianBlur(radius=1))
+
+    gray_scale_image = blurred_image.convert("L")
     inverted_image = ImageOps.invert(gray_scale_image)
 
     # Invert image so light parts caome out thinner on lithophane
@@ -17,6 +23,17 @@ with Image.open(
     img_len = len(inverted_image_array)
     img_bth = len(inverted_image_array[0])
     img_pix_cnt = img_len * img_bth
+
+    brightest_pix_val = 0
+    dullest_pix_val = 255
+    for row in inverted_image_array:
+        for pix in row:
+            if pix > brightest_pix_val:
+                brightest_pix_val = pix
+            if pix<dullest_pix_val:
+                dullest_pix_val = pix
+    
+    print(brightest_pix_val, dullest_pix_val)
 
     # Get z-axis of each pixel
     height_map_array = np.zeros((img_len, img_bth))
@@ -26,27 +43,29 @@ with Image.open(
         for pix in row:
             height_map_array[i][j] = (
                 THICKNESS_SCALE[0]
-                + ((THICKNESS_SCALE[1] - THICKNESS_SCALE[0]) / (255 - 0)) * pix
+                + ((THICKNESS_SCALE[1] - THICKNESS_SCALE[0]) / (brightest_pix_val - dullest_pix_val)) * pix
             )
             j += 1
         i += 1
 
     # Create STL file from height map array
     # Top
+    scaling_factor = MAX_PRINT_SIDE / max(img_len, img_bth)
+
     top_vertices = np.zeros((img_len * img_bth, 3))
     for i in range(img_len):
         for j in range(img_bth):
             idx = img_bth * i + j
-            top_vertices[idx][0] = i
-            top_vertices[idx][1] = j
+            top_vertices[idx][0] = i * scaling_factor
+            top_vertices[idx][1] = j * scaling_factor
             top_vertices[idx][2] = height_map_array[i][j]
 
     bottom_vertices = np.zeros((img_len * img_bth, 3))
     for i in range(img_len):
         for j in range(img_bth):
             idx = img_bth * i + j
-            bottom_vertices[idx][0] = i
-            bottom_vertices[idx][1] = j
+            bottom_vertices[idx][0] = i * scaling_factor
+            bottom_vertices[idx][1] = j * scaling_factor
             bottom_vertices[idx][2] = 0
 
     all_vertices = np.vstack((top_vertices, bottom_vertices))
@@ -62,8 +81,8 @@ with Image.open(
             bottom_left = top_left + img_bth
             bottom_right = bottom_left + 1
 
-            top_triangles[t] = [top_left, top_right, bottom_left]
-            top_triangles[t + 1] = [top_right, bottom_right, bottom_left]
+            top_triangles[t] = [top_left, bottom_left, top_right]
+            top_triangles[t + 1] = [top_right, bottom_left, bottom_right]
             t += 2
 
     print("top_triangles", top_triangles)
@@ -78,8 +97,6 @@ with Image.open(
             bottom_left = top_left + img_bth
             bottom_right = bottom_left + 1
 
-            # bottom_triangles[t] = [top_left, bottom_left, top_right]
-            # bottom_triangles[t + 1] = [top_right, bottom_left, bottom_right]
             bottom_triangles[t] = [top_left, top_right, bottom_left]
             bottom_triangles[t + 1] = [top_right, bottom_right, bottom_left]
             t += 2
@@ -124,8 +141,8 @@ with Image.open(
         bottom_left = i + img_pix_cnt
         bottom_right = bottom_left + img_bth
 
-        side_left_triangles[t] = [top_left, top_right, bottom_left]
-        side_left_triangles[t + 1] = [top_right, bottom_right, bottom_left]
+        side_left_triangles[t] = [top_left, bottom_left, top_right]
+        side_left_triangles[t + 1] = [top_right,bottom_left, bottom_right]
         t += 2
     print("side_left_triangles", side_left_triangles)
 
@@ -138,8 +155,8 @@ with Image.open(
         bottom_left = i + img_pix_cnt
         bottom_right = bottom_left + img_bth
 
-        side_right_triangles[t] = [top_left, bottom_left, top_right]
-        side_right_triangles[t + 1] = [top_right, bottom_left, bottom_right]
+        side_right_triangles[t] = [top_left, top_right,bottom_left]
+        side_right_triangles[t + 1] = [top_right, bottom_right, bottom_left]
         t += 2
     print("side_right_triangles", side_right_triangles)
 
