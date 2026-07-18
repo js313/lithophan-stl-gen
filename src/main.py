@@ -4,7 +4,7 @@ from stl import mesh
 
 THICKNESS_SCALE = [0.6, 3.0]
 MAX_PRINT_SIDE = 150
-CONTRAST = 2.0
+CONTRAST = 1.2
 
 # Load Image
 with Image.open(
@@ -30,9 +30,9 @@ with Image.open(
         for pix in row:
             if pix > brightest_pix_val:
                 brightest_pix_val = pix
-            if pix<dullest_pix_val:
+            if pix < dullest_pix_val:
                 dullest_pix_val = pix
-    
+
     print(brightest_pix_val, dullest_pix_val)
 
     # Get z-axis of each pixel
@@ -43,7 +43,11 @@ with Image.open(
         for pix in row:
             height_map_array[i][j] = (
                 THICKNESS_SCALE[0]
-                + ((THICKNESS_SCALE[1] - THICKNESS_SCALE[0]) / (brightest_pix_val - dullest_pix_val)) * pix
+                + (
+                    (THICKNESS_SCALE[1] - THICKNESS_SCALE[0])
+                    / (brightest_pix_val - dullest_pix_val)
+                )
+                * pix
             )
             j += 1
         i += 1
@@ -142,7 +146,7 @@ with Image.open(
         bottom_right = bottom_left + img_bth
 
         side_left_triangles[t] = [top_left, bottom_left, top_right]
-        side_left_triangles[t + 1] = [top_right,bottom_left, bottom_right]
+        side_left_triangles[t + 1] = [top_right, bottom_left, bottom_right]
         t += 2
     print("side_left_triangles", side_left_triangles)
 
@@ -155,7 +159,7 @@ with Image.open(
         bottom_left = i + img_pix_cnt
         bottom_right = bottom_left + img_bth
 
-        side_right_triangles[t] = [top_left, top_right,bottom_left]
+        side_right_triangles[t] = [top_left, top_right, bottom_left]
         side_right_triangles[t + 1] = [top_right, bottom_right, bottom_left]
         t += 2
     print("side_right_triangles", side_right_triangles)
