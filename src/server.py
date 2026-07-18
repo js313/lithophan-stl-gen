@@ -45,6 +45,8 @@ async def generate_lithophane(
     min_thickness: float = Form(0.6),
     max_thickness: float = Form(3.0),
     max_side: float = Form(150.0),
+    contrast: float = Form(1.2),
+    blur_amount: float = Form(1.0),
 ):
     # Validate file type
     if not file.content_type.startswith("image/"):
@@ -81,6 +83,10 @@ async def generate_lithophane(
         str(max_thickness),
         "--max-side",
         str(max_side),
+        "--contrast",
+        str(contrast),
+        "--blur-amount",
+        str(blur_amount),
     ]
 
     try:

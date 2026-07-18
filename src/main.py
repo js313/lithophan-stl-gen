@@ -11,20 +11,22 @@ CONTRAST = 1.2
 GAUSSIAN_BLUR_RADIUS = 1
 
 
-def process_image(image_path):
+def process_image(image_path, contrast=CONTRAST, blur_radius=GAUSSIAN_BLUR_RADIUS):
     # Loads and preprocesses the image to a grayscale inverted array.
     with Image.open(image_path) as img:
         # Contrast enhancement
         enhancer = ImageEnhance.Contrast(img)
-        img = enhancer.enhance(CONTRAST)
+        img = enhancer.enhance(contrast)
 
         # Apply blur to smooth transitions
-        img = img.filter(ImageFilter.GaussianBlur(radius=GAUSSIAN_BLUR_RADIUS))
+        if blur_radius > 0:
+            img = img.filter(ImageFilter.GaussianBlur(radius=blur_radius))
 
         # Convert to grayscale and invert
         # Invert so light parts are thinner (lower Z) and dark parts are thicker (higher Z)
         img = ImageOps.invert(img.convert("L"))
         return np.asarray(img)
+
 
 
 def create_lithophane_mesh(image_array, thickness_range, max_side):
@@ -130,6 +132,8 @@ def main():
     parser.add_argument("--min-thickness", type=float, default=THICKNESS_SCALE[0], help="Minimum thickness (mm)")
     parser.add_argument("--max-thickness", type=float, default=THICKNESS_SCALE[1], help="Maximum thickness (mm)")
     parser.add_argument("--max-side", type=float, default=MAX_PRINT_SIDE, help="Maximum side length (mm)")
+    parser.add_argument("--blur-amount", type=float, default=GAUSSIAN_BLUR_RADIUS, help="Blur amount")
+    parser.add_argument("--contrast", type=float, default=CONTRAST, help="Contrast")
 
     args = parser.parse_args()
 
@@ -145,7 +149,7 @@ def main():
     thickness_scale = [args.min_thickness, args.max_thickness]
 
     print(f"Processing image: {image_path}...")
-    img_array = process_image(image_path)
+    img_array = process_image(image_path, contrast=args.contrast, blur_radius=args.blur_amount)
     
     print("Generating mesh...")
     litho_mesh = create_lithophane_mesh(img_array, thickness_scale, args.max_side)

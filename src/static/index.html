@@ -84,6 +84,32 @@
                             <input type="range" id="max-side" name="max_side" min="50" max="250" step="10" value="150">
                             <span class="param-desc">Maintains aspect ratio; scales longest edge to this size</span>
                         </div>
+
+                        <div class="parameter-item">
+                            <div class="parameter-header">
+                                <label for="contrast">Contrast</label>
+                                <span class="val-display" id="contrast-val">1.2</span>
+                            </div>
+                            <input type="range" id="contrast" name="contrast" min="0.5" max="3.0" step="0.1" value="1.2">
+                            <span class="param-desc">Enhances image contrast before generating 3D heights</span>
+                        </div>
+
+                        <div class="parameter-item">
+                            <div class="parameter-header">
+                                <label for="blur-amount">Gaussian Blur Radius</label>
+                                <span class="val-display" id="blur-amount-val">1.0 px</span>
+                            </div>
+                            <input type="range" id="blur-amount" name="blur_amount" min="0.0" max="5.0" step="0.5" value="1.0">
+                            <span class="param-desc">Applies blur to smooth transitions and reduce print noise</span>
+                        </div>
+
+                        <div class="parameter-item switch-container">
+                            <label class="switch-label" for="enable-preview">Enable 3D Preview</label>
+                            <label class="switch">
+                                <input type="checkbox" id="enable-preview" name="enable_preview">
+                                <span class="slider-round"></span>
+                            </label>
+                        </div>
                     </div>
 
                     <button type="submit" class="btn btn-primary generate-btn" id="generate-btn" disabled>

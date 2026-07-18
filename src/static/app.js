@@ -15,6 +15,11 @@ const maxThicknessInput = document.getElementById('max-thickness');
 const maxThicknessVal = document.getElementById('max-thickness-val');
 const maxSideInput = document.getElementById('max-side');
 const maxSideVal = document.getElementById('max-side-val');
+const contrastInput = document.getElementById('contrast');
+const contrastVal = document.getElementById('contrast-val');
+const blurAmountInput = document.getElementById('blur-amount');
+const blurAmountVal = document.getElementById('blur-amount-val');
+const enablePreviewInput = document.getElementById('enable-preview');
 
 const canvasContainer = document.getElementById('canvas-container');
 const viewportPlaceholder = document.getElementById('viewport-placeholder');
@@ -53,6 +58,14 @@ maxThicknessInput.addEventListener('input', (e) => {
 
 maxSideInput.addEventListener('input', (e) => {
     maxSideVal.textContent = `${e.target.value} mm`;
+});
+
+contrastInput.addEventListener('input', (e) => {
+    contrastVal.textContent = e.target.value;
+});
+
+blurAmountInput.addEventListener('input', (e) => {
+    blurAmountVal.textContent = `${e.target.value} px`;
 });
 
 // 2. Drag & Drop Upload Zone Handler
@@ -145,6 +158,8 @@ generatorForm.addEventListener('submit', async (e) => {
     formData.append('min_thickness', minThicknessInput.value);
     formData.append('max_thickness', maxThicknessInput.value);
     formData.append('max_side', maxSideInput.value);
+    formData.append('contrast', contrastInput.value);
+    formData.append('blur_amount', blurAmountInput.value);
 
     try {
         const response = await fetch('/api/generate', {
@@ -170,11 +185,23 @@ generatorForm.addEventListener('submit', async (e) => {
         downloadBtn.download = `${fileInput.files[0].name.split('.')[0]}_lithophane.stl`;
         
         // Render in 3D
-        await loadSTLToViewport(stlBlob);
+        // Render in 3D only if preview toggle is on
+        if (enablePreviewInput.checked) {
+            await loadSTLToViewport(stlBlob);
+            viewportControls.style.display = 'flex';
+            document.querySelector('.mesh-stats').style.display = 'flex';
+        } else {
+            if (currentMesh) {
+                scene.remove(currentMesh);
+                currentMesh = null;
+            }
+            viewportPlaceholder.style.display = 'flex';
+            viewportControls.style.display = 'none';
+            document.querySelector('.mesh-stats').style.display = 'none';
+        }
         
         // Show Download actions
         downloadActions.style.display = 'flex';
-        viewportControls.style.display = 'flex';
 
     } catch (err) {
         console.error(err);
