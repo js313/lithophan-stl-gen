@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lithophane 3D STL Generator</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for beautiful icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="glow-bg"></div>
+    <div class="app-container">
+        <header>
+            <div class="logo">
+                <i class="fa-solid fa-layer-group logo-icon"></i>
+                <div class="logo-text">
+                    <h1>LithoPrint</h1>
+                    <span>Lithophane STL Generator</span>
+                </div>
+            </div>
+            <div class="system-badge">
+                <span class="status-dot"></span>
+                <span>Local Server Active</span>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Left Panel: Controls & Inputs -->
+            <section class="control-panel card">
+                <div class="section-title">
+                    <i class="fa-solid fa-sliders"></i>
+                    <h2>Configure & Upload</h2>
+                </div>
+
+                <form id="generator-form">
+                    <!-- Image Upload Zone -->
+                    <div class="upload-container" id="drop-zone">
+                        <input type="file" id="file-input" accept="image/*" required hidden>
+                        <div class="upload-prompt" id="upload-prompt">
+                            <i class="fa-regular fa-image upload-icon"></i>
+                            <p class="primary-text">Drag and drop your image here</p>
+                            <p class="secondary-text">or click to browse from device</p>
+                            <span class="file-hint">Supports PNG, JPG, JPEG, WEBP</span>
+                        </div>
+                        <div class="preview-container" id="preview-container" style="display: none;">
+                            <img id="image-preview" src="" alt="Image preview">
+                            <button type="button" class="btn btn-secondary remove-img-btn" id="remove-img-btn">
+                                <i class="fa-solid fa-xmark"></i> Change Image
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Parameters -->
+                    <div class="parameters-group">
+                        <div class="parameter-item">
+                            <div class="parameter-header">
+                                <label for="min-thickness">Minimum Thickness</label>
+                                <span class="val-display" id="min-thickness-val">0.6 mm</span>
+                            </div>
+                            <input type="range" id="min-thickness" name="min_thickness" min="0.2" max="2.0" step="0.1" value="0.6">
+                            <span class="param-desc">Thickness of the thinnest parts (bright image areas)</span>
+                        </div>
+
+                        <div class="parameter-item">
+                            <div class="parameter-header">
+                                <label for="max-thickness">Maximum Thickness</label>
+                                <span class="val-display" id="max-thickness-val">3.0 mm</span>
+                            </div>
+                            <input type="range" id="max-thickness" name="max_thickness" min="1.5" max="6.0" step="0.1" value="3.0">
+                            <span class="param-desc">Thickness of the thickest parts (dark image areas)</span>
+                        </div>
+
+                        <div class="parameter-item">
+                            <div class="parameter-header">
+                                <label for="max-side">Maximum Side Length</label>
+                                <span class="val-display" id="max-side-val">150 mm</span>
+                            </div>
+                            <input type="range" id="max-side" name="max_side" min="50" max="250" step="10" value="150">
+                            <span class="param-desc">Maintains aspect ratio; scales longest edge to this size</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary generate-btn" id="generate-btn" disabled>
+                        <i class="fa-solid fa-cubes"></i> Generate 3D Lithophane
+                    </button>
+                </form>
+            </section>
+
+            <!-- Right Panel: 3D Previewer -->
+            <section class="preview-panel card">
+                <div class="section-title">
+                    <i class="fa-solid fa-cube"></i>
+                    <h2>3D Interactive Preview</h2>
+                </div>
+
+                <div class="viewport-wrapper">
+                    <!-- Canvas Container -->
+                    <div id="canvas-container" class="canvas-container">
+                        <!-- Placeholder overlay -->
+                        <div class="viewport-placeholder" id="viewport-placeholder">
+                            <div class="placeholder-icon-wrapper">
+                                <i class="fa-solid fa-cube placeholder-icon animate-float"></i>
+                            </div>
+                            <h3>Mesh Preview Panel</h3>
+                            <p>Once generated, your 3D lithophane mesh will render here. You will be able to rotate, pan, and zoom to inspect the details.</p>
+                        </div>
+                        
+                        <!-- Loading spinner -->
+                        <div class="viewport-loading" id="viewport-loading" style="display: none;">
+                            <div class="loader-spinner"></div>
+                            <p class="loading-status">Processing image...</p>
+                            <p class="loading-sub">Creating 3D vertex mesh mapping (may take up to 10 seconds)...</p>
+                        </div>
+
+                        <!-- 3D Controls overlay (visible only when rendering) -->
+                        <div class="viewport-controls" id="viewport-controls" style="display: none;">
+                            <button class="control-btn" id="reset-view-btn" title="Reset View">
+                                <i class="fa-solid fa-arrows-to-eye"></i> Reset
+                            </button>
+                            <button class="control-btn" id="toggle-wireframe-btn" title="Toggle Wireframe">
+                                <i class="fa-solid fa-border-none"></i> Wireframe
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="download-actions" id="download-actions" style="display: none;">
+                    <div class="mesh-stats">
+                        <span id="mesh-triangles"><i class="fa-solid fa-triangle-exclamation"></i> -- triangles</span>
+                        <span id="mesh-dimensions"><i class="fa-solid fa-maximize"></i> -- mm</span>
+                    </div>
+                    <a id="download-btn" href="#" class="btn btn-success download-btn">
+                        <i class="fa-solid fa-download"></i> Download STL File
+                    </a>
+                </div>
+            </section>
+        </main>
+        
+        <footer>
+            <p>LithoPrint &copy; 2026. Vectorized lithophane STL mesh generator wrapper.</p>
+        </footer>
+    </div>
+
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- OrbitControls for camera interaction -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- STLLoader for reading STL binary file for local preview -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+    <!-- Application Logic -->
+    <script src="/static/app.js"></script>
+</body>
+</html>
