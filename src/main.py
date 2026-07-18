@@ -7,11 +7,12 @@ from stl import mesh
 # Configuration Constants
 THICKNESS_SCALE = [0.6, 3.0]
 MAX_PRINT_SIDE = 150
+MAX_DIMENSION = 600
 CONTRAST = 1.2
 GAUSSIAN_BLUR_RADIUS = 1
 
 
-def process_image(image_path, contrast=CONTRAST, blur_radius=GAUSSIAN_BLUR_RADIUS):
+def process_image(image_path, contrast=CONTRAST, blur_radius=GAUSSIAN_BLUR_RADIUS, max_dimension = MAX_DIMENSION):
     # Loads and preprocesses the image to a grayscale inverted array.
     with Image.open(image_path) as img:
         # Contrast enhancement
@@ -21,6 +22,11 @@ def process_image(image_path, contrast=CONTRAST, blur_radius=GAUSSIAN_BLUR_RADIU
         # Apply blur to smooth transitions
         if blur_radius > 0:
             img = img.filter(ImageFilter.GaussianBlur(radius=blur_radius))
+
+        # downsize image to prevent from generating millions of polygons
+        # thumbnail() resizes in-place while maintaining aspect ratio
+        # LANCZOS provides the highest quality downsampling
+        img.thumbnail((max_dimension, max_dimension), Image.Resampling.LANCZOS)
 
         # Convert to grayscale and invert
         # Invert so light parts are thinner (lower Z) and dark parts are thicker (higher Z)
