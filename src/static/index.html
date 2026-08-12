@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,12 +8,15 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <!-- FontAwesome for beautiful icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom Style -->
     <link rel="stylesheet" href="/static/style.css">
 </head>
+
 <body>
     <div class="glow-bg"></div>
     <div class="app-container">
@@ -63,7 +67,8 @@
                                 <label for="min-thickness">Minimum Thickness</label>
                                 <span class="val-display" id="min-thickness-val">0.6 mm</span>
                             </div>
-                            <input type="range" id="min-thickness" name="min_thickness" min="0.2" max="2.0" step="0.1" value="0.6">
+                            <input type="range" id="min-thickness" name="min_thickness" min="0.2" max="2.0" step="0.1"
+                                value="0.6">
                             <span class="param-desc">Thickness of the thinnest parts (bright image areas)</span>
                         </div>
 
@@ -72,7 +77,8 @@
                                 <label for="max-thickness">Maximum Thickness</label>
                                 <span class="val-display" id="max-thickness-val">3.0 mm</span>
                             </div>
-                            <input type="range" id="max-thickness" name="max_thickness" min="1.5" max="6.0" step="0.1" value="3.0">
+                            <input type="range" id="max-thickness" name="max_thickness" min="1.5" max="6.0" step="0.1"
+                                value="3.0">
                             <span class="param-desc">Thickness of the thickest parts (dark image areas)</span>
                         </div>
 
@@ -81,7 +87,7 @@
                                 <label for="max-side">Maximum Side Length</label>
                                 <span class="val-display" id="max-side-val">150 mm</span>
                             </div>
-                            <input type="range" id="max-side" name="max_side" min="50" max="250" step="10" value="150">
+                            <input type="range" id="max-side" name="max_side" min="50" max="250" step="5" value="150">
                             <span class="param-desc">Maintains aspect ratio; scales longest edge to this size</span>
                         </div>
 
@@ -90,7 +96,8 @@
                                 <label for="contrast">Contrast</label>
                                 <span class="val-display" id="contrast-val">1.2</span>
                             </div>
-                            <input type="range" id="contrast" name="contrast" min="0.5" max="3.0" step="0.1" value="1.2">
+                            <input type="range" id="contrast" name="contrast" min="0.5" max="3.0" step="0.1"
+                                value="1.2">
                             <span class="param-desc">Enhances image contrast before generating 3D heights</span>
                         </div>
 
@@ -99,7 +106,8 @@
                                 <label for="blur-amount">Gaussian Blur Radius</label>
                                 <span class="val-display" id="blur-amount-val">1.0 px</span>
                             </div>
-                            <input type="range" id="blur-amount" name="blur_amount" min="0.0" max="5.0" step="0.5" value="1.0">
+                            <input type="range" id="blur-amount" name="blur_amount" min="0.0" max="5.0" step="0.5"
+                                value="1.0">
                             <span class="param-desc">Applies blur to smooth transitions and reduce print noise</span>
                         </div>
 
@@ -134,9 +142,10 @@
                                 <i class="fa-solid fa-cube placeholder-icon animate-float"></i>
                             </div>
                             <h3>Mesh Preview Panel</h3>
-                            <p>Once generated, your 3D lithophane mesh will render here. You will be able to rotate, pan, and zoom to inspect the details.</p>
+                            <p>Once generated, your 3D lithophane mesh will render here. You will be able to rotate,
+                                pan, and zoom to inspect the details.</p>
                         </div>
-                        
+
                         <!-- Loading spinner -->
                         <div class="viewport-loading" id="viewport-loading" style="display: none;">
                             <div class="loader-spinner"></div>
@@ -167,7 +176,7 @@
                 </div>
             </section>
         </main>
-        
+
         <footer>
             <p>LithoPrint &copy; 2026. Vectorized lithophane STL mesh generator wrapper.</p>
         </footer>
@@ -182,4 +191,5 @@
     <!-- Application Logic -->
     <script src="/static/app.js"></script>
 </body>
+
 </html>
